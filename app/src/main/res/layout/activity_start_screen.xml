@@ -4,15 +4,21 @@
     android:layout_height="match_parent"
     tools:context=".StartScreen">
 
+    <include
+        android:id="@+id/app_bar"
+        layout="@layout/app_bar"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent" />
+
     <EditText
         android:id="@+id/etURL"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="50dp"
+        android:layout_marginTop="81dp"
         android:ems="15"
-        android:inputType="textUri" />
+        android:inputType="textUri"
+        android:layout_below="@+id/app_bar"
+        android:layout_centerHorizontal="true" />
 
     <Button
         android:layout_width="wrap_content"
@@ -27,7 +33,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="---"
+        android:text=""
         android:id="@+id/tvStatus"
         android:layout_below="@+id/bGet"
         android:layout_centerHorizontal="true"
@@ -37,9 +43,18 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="---"
+        android:text=""
         android:id="@+id/tvNoLinks"
         android:layout_below="@+id/bGet"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="30dp" />
+
+    <ProgressBar
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/progressBar"
+        android:layout_below="@+id/tvStatus"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="69dp" />
+
 </RelativeLayout>

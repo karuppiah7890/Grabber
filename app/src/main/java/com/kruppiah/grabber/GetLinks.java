@@ -2,8 +2,6 @@ package com.kruppiah.grabber;
 
 import android.os.Environment;
 import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
 import android.util.Log;
 
 import org.jsoup.Jsoup;
@@ -17,63 +15,21 @@ import java.util.regex.Pattern;
 public class GetLinks extends Thread{
 
     String url;
-    Handler startscreenHandler;
+    Handler mHandler;
     int count = 0;
-    int done = 0;
-    int error = 0;
-    int flag = 0;
 
-    public static final int DONE = 1;
-    public static final int ERROR = 2;
-
-    private final Handler mHandler = new Handler(Looper.getMainLooper()) {
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-
-                case DONE:
-
-                    done++;
-
-                    Log.i("GETLINKS",done + " Download(s) Done");
-
-                    startscreenHandler.obtainMessage(StartScreen.DONE,"So many done : " + done).sendToTarget();
-
-                    if((done+error)==count)
-                    {
-                        startscreenHandler.obtainMessage(StartScreen.DONE,"Download Done!").sendToTarget();
-                        flag=1;
-                    }
-
-                    break;
-
-                case ERROR :
-
-                        error++;
-
-                        if((done+error)==count) {
-                            startscreenHandler.obtainMessage(StartScreen.DONE,"Error : " + (String)msg.obj + "\n\nDownload Done!").sendToTarget();
-                            flag=1;
-                            break;
-                        }
-
-                        else
-                        {
-                            startscreenHandler.obtainMessage(StartScreen.DONE,"Error : " + (String)msg.obj).sendToTarget();
-                            break;
-                        }
-            }
-        }
-    };
-
-    public GetLinks(Handler startscreenHandler, String url)
+    public GetLinks(Handler mHandler, String url)
     {
         this.url = url;
-        this.startscreenHandler = startscreenHandler;
+        this.mHandler = mHandler;
     }
 
     @Override
     public void run() {
+
+        String exception = "";
+
+        ArrayList<String> pdflinks = new ArrayList<String>();
 
         try {
 
@@ -83,61 +39,45 @@ public class GetLinks extends Thread{
 
             Document doc = Jsoup.connect(url).get();
 
+            Log.i("GETLINKS","Connected to page!");
+
             Elements links = doc.select("a[href]");
 
-            ArrayList<String> filenames = new ArrayList<String>();
+            Log.i("GETLINKS","Total Number of Links : " + links.size());
+
+            String hreflink = "";
+            boolean b;
 
             for(int i=0;i<links.size();i++)
             {
-                String link = links.get(i).attr("href");
+                hreflink = links.get(i).attr("href");
 
-                boolean b = Pattern.matches(".*\\.pdf$", link);
+                b = Pattern.matches(".*\\.pdf$", hreflink) || Pattern.matches(".*\\.PDF$", hreflink);
+                Log.i("GETLINKS : ",hreflink);
 
                 if(b)
-                filenames.add(link);
+                {
+                    Log.i("GETLINKS", "pdf link");
+                    pdflinks.add(hreflink);
+                }
             }
 
+            count = pdflinks.size();
 
-            count = filenames.size();
+            mHandler.obtainMessage(StartScreen.LINKS,count + "").sendToTarget();
 
-            startscreenHandler.obtainMessage(StartScreen.LINKS,count + "").sendToTarget();
+            mHandler.obtainMessage(StartScreen.STATUS,"Gathering information about links...").sendToTarget();
 
-            for(int i=0;i<filenames.size();i++)
+            for(int i=0;i<pdflinks.size();i++)
             {
-                String link = filenames.get(i);
-
-                String tokens[] = link.split("/");
-
-                String name = tokens[tokens.length-1];
-
-                Log.i("GETLINKS","Link : " + link);
-
-                boolean b = Pattern.matches("^http://.*", link) ||  Pattern.matches("^https://.*", link) || Pattern.matches("^ftp://.*", link);
-
-                DownloadFile df =  null;
-
-                if (b)
-                {
-                    df = new DownloadFile(mHandler,link,name);
-                }
-
-                else
-                {
-
-                    df = new DownloadFile(mHandler,url+"/"+link,name);
-                }
-
-                df.start();
-
-                df.join();
+                hreflink = pdflinks.get(i);
+                AllDownloads.AllLinks.add(new Link(url, hreflink));
             }
 
-            Log.i("GETLINKS","Waiting ...");
-
-            //while(flag==0);
+            mHandler.obtainMessage(StartScreen.DONE,"").sendToTarget();
 
         } catch (Exception e) {
-            startscreenHandler.obtainMessage(StartScreen.DONE,e.toString()).sendToTarget();
+            mHandler.obtainMessage(StartScreen.STATUS,e.toString()).sendToTarget();
         }
 
     }
