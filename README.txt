@@ -5,3 +5,4 @@ jsoup - www.jsoup.org
 
 Basic Module added : 
 Grabbing pdf file links and downloading them.
+Showing the pdfs in a list.
